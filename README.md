@@ -4,10 +4,10 @@ Small logging framework built on top of slf4j which in a servlet context will pr
 To be functional, make sure the servlet filter is hooked up. In e.g. Spring, this could be done using Java config:
 
 ```Java
-	@Bean
-    public Filter parsimusLoggingFilter(){
-	    return new ParsimusLoggingFilter();
-    }
+@Bean
+public Filter parsimusLoggingFilter(){
+    return new ParsimusLoggingFilter();
+}
 ```
 
 You also have to ensure that the ThreadLoggingManager slf4j logger logs at all log levels. In Spring Boot, that can be done by setting the following property.
@@ -32,3 +32,10 @@ public class ExceptionControllerAdvice {
     }
 }
 ```
+
+Alternatively, if any exceptions will bubble up across your request filters, you could let the parsimus filter handle these exceptions by
+- catching the exceptions
+- cause the full log stack to be printed
+- rethrowing the exception
+
+This can be done by performing a static call to `ParsimusLoggingFilter.setActiveOnException(true)` at some point during the application startup phase, or by seting the system property `parsimus.activeOnException=true`.
