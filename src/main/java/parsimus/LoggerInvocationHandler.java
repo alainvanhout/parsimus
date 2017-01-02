@@ -17,7 +17,7 @@ public class LoggerInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        ThreadLoggingManager.add(clazz, method, args);
+        ParsimusLoggingManager.add(clazz, method, args);
 
         return method.invoke(logger, args);
     }

@@ -2,17 +2,17 @@ package parsimus.servlet;
 
 import org.slf4j.Logger;
 import parsimus.LoggerFactory;
-import parsimus.ThreadLoggingManager;
+import parsimus.ParsimusLoggingManager;
 
 import javax.servlet.*;
 import java.io.IOException;
 
 /**
- * Servlet filter which will print the full log stack of the request thread, if @Link {@link ThreadLoggingManager#active}
+ * Servlet filter which will print the full log stack of the request thread, if @Link {@link ParsimusLoggingManager#active}
  * was set to true inside that request thread.
  *
  * Setting @Link ParsimusLoggingFilter#activeOnException to true will cause the filter itself to catch any exceptions,
- * log them, and set @Link {@link ThreadLoggingManager#active} to true, print the full log stack and do a (wrapped) rethrow
+ * log them, and set @Link {@link ParsimusLoggingManager#active} to true, print the full log stack and do a (wrapped) rethrow
  * the exception. This static field can be set directly, or can be specified via the system property 'parsimus.activeOnException'.
  */
 public class ParsimusLoggingFilter implements Filter {
@@ -26,12 +26,12 @@ public class ParsimusLoggingFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        ThreadLoggingManager.init();
+        ParsimusLoggingManager.init();
 
         if (!activeOnException){
             // simple handling (separated out to avoid the necessity for exception wrapping)
             filterChain.doFilter(servletRequest, servletResponse);
-            ThreadLoggingManager.printAll();
+            ParsimusLoggingManager.printAll();
         } else {
             // catch any exceptions, log them and active ThreadLoggingManager for this request thread
             Exception exception = null;
@@ -40,9 +40,9 @@ public class ParsimusLoggingFilter implements Filter {
             } catch (Exception e) {
                 exception = e;
                 LOG.error("Encountered unexpected exception", exception);
-                ThreadLoggingManager.setActive(true);
+                ParsimusLoggingManager.setActive(true);
             }
-            ThreadLoggingManager.printAll();
+            ParsimusLoggingManager.printAll();
 
             if (exception != null) {
                 throw new ServletException(exception);
