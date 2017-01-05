@@ -26,7 +26,7 @@ public class ParsimusLoggingFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        ParsimusLoggingManager.init();
+        ParsimusLoggingManager.reset();
 
         if (!activeOnException){
             // simple handling (separated out to avoid the necessity for exception wrapping)

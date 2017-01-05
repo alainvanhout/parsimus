@@ -35,16 +35,17 @@ public class ParsimusLoggingManager {
     /**
      * Initializes or resets the full log stack and @Link active state for the current request thread
      */
-    public static void init() {
+    public static void reset() {
         logEntries.set(new ArrayList<>());
         active.set(false);
     }
 
     /**
      * Add a new entry to the full log stack, based on the supplied parameters.
-     * @param clazz The class associated with the slf4j logger and proxy that made the log call
+     *
+     * @param clazz  The class associated with the slf4j logger and proxy that made the log call
      * @param method The method that was called on the logger
-     * @param args The arguments that were passed to the log call
+     * @param args   The arguments that were passed to the log call
      */
     public static void add(Class clazz, Method method, Object[] args) {
         // get the log stack for the current request thread
@@ -58,7 +59,7 @@ public class ParsimusLoggingManager {
         if (active.get()) {
             List<LogEntry> entries = getLogEntries();
 
-            LOG.info("===== STARTING THREAD LOGGING PRINT =====");
+            LOG.warn("==== STARTING PARSIMUS LOGGING AT LEVEL: " + getLogLevel() + " ====");
 
             for (LogEntry logEntry : entries) {
 
@@ -80,12 +81,30 @@ public class ParsimusLoggingManager {
                 }
             }
 
-            LOG.info("===== FINISHED LOGGING THREAD PRINT =====");
+            LOG.info("===== FINISHED PARSIMUS LOGGING =====");
         }
 
         // clear the log stack and active state for the current request thread
-        logEntries.get().clear();
-        active.set(false);
+        reset();
+    }
+
+    private static String getLogLevel() {
+        if (LOG.isTraceEnabled()) {
+            return "TRACE";
+        }
+        if (LOG.isDebugEnabled()) {
+            return "DEBUG";
+        }
+        if (LOG.isInfoEnabled()) {
+            return "INFO";
+        }
+        if (LOG.isWarnEnabled()) {
+            return "WARN";
+        }
+        if (LOG.isErrorEnabled()) {
+            return "ERROR";
+        }
+        return "NONE";
     }
 
     public static void setActive(boolean active) {
@@ -93,7 +112,7 @@ public class ParsimusLoggingManager {
     }
 
     private static List<LogEntry> getLogEntries() {
-        if (logEntries.get() == null){
+        if (logEntries.get() == null) {
             logEntries.set(new ArrayList<>());
         }
 
