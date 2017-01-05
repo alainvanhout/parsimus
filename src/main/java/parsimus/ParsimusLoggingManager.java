@@ -48,7 +48,7 @@ public class ParsimusLoggingManager {
      */
     public static void add(Class clazz, Method method, Object[] args) {
         // get the log stack for the current request thread
-        List<LogEntry> entries = ParsimusLoggingManager.logEntries.get();
+        List<LogEntry> entries = getLogEntries();
         // add the call to the full log stack
         entries.add(new LogEntry(clazz, method, args, LocalDateTime.now()));
     }
@@ -56,7 +56,7 @@ public class ParsimusLoggingManager {
     public static void printAll() {
         // do
         if (active.get()) {
-            List<LogEntry> entries = ParsimusLoggingManager.logEntries.get();
+            List<LogEntry> entries = getLogEntries();
 
             LOG.info("===== STARTING THREAD LOGGING PRINT =====");
 
@@ -90,5 +90,13 @@ public class ParsimusLoggingManager {
 
     public static void setActive(boolean active) {
         ParsimusLoggingManager.active.set(active);
+    }
+
+    private static List<LogEntry> getLogEntries() {
+        if (logEntries.get() == null){
+            logEntries.set(new ArrayList<>());
+        }
+
+        return logEntries.get();
     }
 }
