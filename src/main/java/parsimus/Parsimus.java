@@ -7,11 +7,14 @@ import parsimus.servlet.ParsimusLoggingFilter;
  */
 public class Parsimus {
     public static void print(){
-        ParsimusLoggingManager.printAll();
+        // print log stack
+        ParsimusLoggingManager.print();
+        // ensure thread is in now state to inactive
+        ParsimusLoggingFilter.setActive(false);
     }
 
     public static void activate(){
-        ParsimusLoggingManager.setActive(true);
+        ParsimusLoggingFilter.setActive(true);
     }
 
     public static void reset(){

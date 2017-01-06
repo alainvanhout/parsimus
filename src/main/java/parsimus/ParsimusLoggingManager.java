@@ -1,6 +1,7 @@
 package parsimus;
 
 import org.slf4j.Logger;
+import parsimus.servlet.ParsimusLoggingFilter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,7 +20,7 @@ public class ParsimusLoggingManager {
     /**
      * Actual slf4j Logger, which is used to print the full log stack
      */
-    private static final Logger LOG = org.slf4j.LoggerFactory.getLogger(ParsimusLoggingManager.class);
+    private static final Logger LOG = org.slf4j.LoggerFactory.getLogger(Parsimus.class);
 
     /**
      * The full log stack for each request thread
@@ -27,17 +28,10 @@ public class ParsimusLoggingManager {
     private static ThreadLocal<List<LogEntry>> logEntries = new ThreadLocal<>();
 
     /**
-     * Flag which determines whether the full log stack of the current request thread should be printed once the request
-     * thread has passed the filter chaining in @{@link parsimus.servlet.ParsimusLoggingFilter}
-     */
-    private static ThreadLocal<Boolean> active = new ThreadLocal<>();
-
-    /**
      * Initializes or resets the full log stack and @Link active state for the current request thread
      */
     public static void reset() {
         logEntries.set(new ArrayList<>());
-        active.set(false);
     }
 
     /**
@@ -54,38 +48,42 @@ public class ParsimusLoggingManager {
         entries.add(new LogEntry(clazz, method, args, LocalDateTime.now()));
     }
 
-    public static void printAll() {
-        // do
-        if (active.get()) {
-            List<LogEntry> entries = getLogEntries();
+    public static void print() {
 
-            LOG.warn("==== STARTING PARSIMUS LOGGING AT LEVEL: " + getLogLevel() + " ====");
+        List<LogEntry> entries = getLogEntries();
 
-            for (LogEntry logEntry : entries) {
+        LOG.warn("==== STARTING PARSIMUS LOGGING AT LEVEL: " + getLogLevel() + " ====");
 
-                Method method = logEntry.getMethod();
-                Object[] args = logEntry.getArgs();
+        for (LogEntry logEntry : entries) {
+            Object[] args = logEntry.getArgs();
+            // add the information about the original Logger's associated class
+            // and the time at which the log call was made
+            extendFirstArgument(logEntry, args);
 
-                // add the information about the original Logger's associated class and the time at which the log call was made
-                if (args.length > 0 && args[0] instanceof String) {
-                    args[0] = String.format("[%s %s] %s",
-                            logEntry.getCallingClass().getSimpleName(),
-                            logEntry.getDateTime().format(DateTimeFormatter.ISO_DATE_TIME),
-                            args[0]);
-                }
-
-                try {
-                    method.invoke(LOG, args);
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            LOG.info("===== FINISHED PARSIMUS LOGGING =====");
+            invoke(logEntry.getMethod(), args);
         }
 
-        // clear the log stack and active state for the current request thread
+        LOG.info("===== FINISHED PARSIMUS LOGGING =====");
+
+        // clear the log stack for the current request thread
         reset();
+    }
+
+    private static void extendFirstArgument(LogEntry logEntry, Object[] args) {
+        if (args.length > 0 && args[0] instanceof String) {
+            args[0] = String.format("[%s %s] %s",
+                    logEntry.getCallingClass().getSimpleName(),
+                    logEntry.getDateTime().format(DateTimeFormatter.ISO_DATE_TIME),
+                    args[0]);
+        }
+    }
+
+    private static void invoke(Method method, Object[] args) {
+        try {
+            method.invoke(LOG, args);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static String getLogLevel() {
@@ -105,10 +103,6 @@ public class ParsimusLoggingManager {
             return "ERROR";
         }
         return "NONE";
-    }
-
-    public static void setActive(boolean active) {
-        ParsimusLoggingManager.active.set(active);
     }
 
     private static List<LogEntry> getLogEntries() {

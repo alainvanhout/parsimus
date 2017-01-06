@@ -14,6 +14,7 @@ import java.lang.reflect.Proxy;
 public class LoggerFactory {
 
     private static final ClassLoader CLASS_LOADER = LoggerInvocationHandler.class.getClassLoader();
+
     private static final Class[] INTERFACES = {Logger.class};
 
     public static Logger getLogger(Class clazz) {
