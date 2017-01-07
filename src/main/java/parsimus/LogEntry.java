@@ -14,9 +14,9 @@ public class LogEntry {
      */
     private final LocalDateTime dateTime;
     /**
-     * The class that the slf4j logger and its parsimus proxy which made this log call refer to
+     * The name of the slf4j logger (and its parsimus proxy) which made this log call
      */
-    private Class clazz;
+    private String loggerName;
     /**
      * The slf4j logger method that was called on the proxy
      */
@@ -26,8 +26,8 @@ public class LogEntry {
      */
     private Object[] args;
 
-    public LogEntry(Class clazz, Method method, Object[] args, LocalDateTime dateTime) {
-        this.clazz = clazz;
+    public LogEntry(String loggerName, Method method, Object[] args, LocalDateTime dateTime) {
+        this.loggerName = loggerName;
         this.method = method;
         this.args = args;
         this.dateTime = dateTime;
@@ -45,7 +45,7 @@ public class LogEntry {
         return dateTime;
     }
 
-    public Class getCallingClass() {
-        return clazz;
+    public String getLoggerName() {
+        return loggerName;
     }
 }

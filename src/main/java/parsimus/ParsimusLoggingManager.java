@@ -1,7 +1,6 @@
 package parsimus;
 
 import org.slf4j.Logger;
-import parsimus.servlet.ParsimusLoggingFilter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -37,15 +36,15 @@ public class ParsimusLoggingManager {
     /**
      * Add a new entry to the full log stack, based on the supplied parameters.
      *
-     * @param clazz  The class associated with the slf4j logger and proxy that made the log call
+     * @param name   The name associated with the slf4j logger and proxy that made the log call
      * @param method The method that was called on the logger
      * @param args   The arguments that were passed to the log call
      */
-    public static void add(Class clazz, Method method, Object[] args) {
+    public static void add(String name, Method method, Object[] args) {
         // get the log stack for the current request thread
         List<LogEntry> entries = getLogEntries();
         // add the call to the full log stack
-        entries.add(new LogEntry(clazz, method, args, LocalDateTime.now()));
+        entries.add(new LogEntry(name, method, args, LocalDateTime.now()));
     }
 
     public static void print() {
@@ -72,7 +71,7 @@ public class ParsimusLoggingManager {
     private static void extendFirstArgument(LogEntry logEntry, Object[] args) {
         if (args.length > 0 && args[0] instanceof String) {
             args[0] = String.format("[%s %s] %s",
-                    logEntry.getCallingClass().getSimpleName(),
+                    logEntry.getLoggerName(),
                     logEntry.getDateTime().format(DateTimeFormatter.ISO_DATE_TIME),
                     args[0]);
         }
